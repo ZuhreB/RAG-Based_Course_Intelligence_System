@@ -1,0 +1,636 @@
+[
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "IUE 100",
+            "name": "Orientation and Career Planning",
+            "ects": "2",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=IUE 100&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "1",
+            "lab_hours": "0",
+            "local_credit": "1",
+            "objectives": "This course aims to prepare students for university education and campus life and enable them to develop their academic, social and personal skills needed during university education and guide the students to prepare for their professional career.",
+            "description": "The course will help students recognize the skills needed for university life and their career goals. These skills include self-awareness, goal setting, time management, effective communication, mindfulness and analytical thinking. The course will also raise students’ awareness on problems such as addiction and bullying.",
+            "learning_outcomes": [
+                "use the facilities provided by the academic and administrative units of the university,",
+                "describe the academic skills such as notetaking, academic reading, accessing information, time management and analytical thinking,",
+                "explain social skills such as effective communication and entrepreneurship,",
+                "recognize their strengths and weaknesses using strategies such as goal setting, self-awareness, and mindfulness,",
+                "they will be able to explain the habits they need to develop for their physical, mental, and spiritual health, as well as the behaviors they should avoid,",
+                "outline the steps to engage in career planning."
+            ],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Introduction: Aims and Expectations University Life: Academic units, administrative units, and student clubs"
+                },
+                {
+                    "week": "2",
+                    "topic": "Academic Skills: Learning to learn"
+                },
+                {
+                    "week": "3",
+                    "topic": "Academic Skills: Instructional technologies"
+                },
+                {
+                    "week": "4",
+                    "topic": "Academic Skills: Notetaking and academic reading"
+                },
+                {
+                    "week": "5",
+                    "topic": "Academic Skills: Accessing information and academic integrity"
+                },
+                {
+                    "week": "6",
+                    "topic": "Personal Skills: Effective Time Management and Analytical Thinking"
+                },
+                {
+                    "week": "7",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "8",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "9",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "10",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "11",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "12",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "13",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "14",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "15",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "16",
+                    "topic": "Review of the Semester"
+                }
+            ]
+        }
+    },
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "MATH 153",
+            "name": "Calculus I",
+            "ects": "6",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=MATH 153&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "2",
+            "lab_hours": "2",
+            "local_credit": "3",
+            "objectives": "This course aims to built fundamentals of calculus and its applications for engineers",
+            "description": "Calculus I provides important tools in understanding functions of one variable and has led to the development of new areas of mathematics.",
+            "learning_outcomes": [
+                "find limits of functions.",
+                "investigate continuity of functions.",
+                "compute derivatives of explicit and implicit functions.",
+                "solve related rates problems.",
+                "classify critical points of functions.",
+                "sketch graphs of functions.",
+                "solve extreme value problems.",
+                "compute areas of plane regions."
+            ],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Graphs of quadratic functions, Polynomials and rational functions, the trigonometric functions, examples of velocity, growth rate and area"
+                },
+                {
+                    "week": "2",
+                    "topic": "Limits of Functions, limits at infinity and infinite limits"
+                },
+                {
+                    "week": "3",
+                    "topic": "Continuity, tangent lines and their slopes"
+                },
+                {
+                    "week": "4",
+                    "topic": "The derivative, differentiation rules, the chain rule, derivatives of trigonometric functions"
+                },
+                {
+                    "week": "5",
+                    "topic": "Higher-order derivatives, the mean value theorem"
+                },
+                {
+                    "week": "6",
+                    "topic": "Implicit differentiation, inverse functions, Exponential and logarithmic functions"
+                },
+                {
+                    "week": "7",
+                    "topic": "The natural logarithm and exponential. The inverse trigonometric functions"
+                },
+                {
+                    "week": "8",
+                    "topic": "Midterm"
+                },
+                {
+                    "week": "9",
+                    "topic": "Related rates, indeterminate forms"
+                },
+                {
+                    "week": "10",
+                    "topic": "Extreme values, concavity and inflections"
+                },
+                {
+                    "week": "11",
+                    "topic": "Sketching the graph of a function, extreme value problems"
+                },
+                {
+                    "week": "12",
+                    "topic": "Extreme value problems properties of the definite integral.The fundamental theorem of calculus"
+                },
+                {
+                    "week": "13",
+                    "topic": "The method of substitution"
+                },
+                {
+                    "week": "14",
+                    "topic": "The method of substitution, areas of plane regions"
+                },
+                {
+                    "week": "15",
+                    "topic": "Semester review"
+                },
+                {
+                    "week": "16",
+                    "topic": "Final exam"
+                }
+            ]
+        }
+    },
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "ENG 101",
+            "name": "Academic Skills in English I",
+            "ects": "3",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=ENG 101&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "2",
+            "lab_hours": "2",
+            "local_credit": "3",
+            "objectives": "English 101 is a compulsory course for freshman students. English 101 focuses on the cognitive skills of reading, writing, listening and speaking. The course uses current reading and listening texts and focuses on how to understand relevant parts of a text, how to read quickly and effectively, how to relate different ideas from multiple texts and how to use texts as sources for an output task. In speaking and writing, the course focuses on using sources, paraphrasing, quoting, summarising and synthesizing. The students will learn how to write coherent, concise informative or persuasive responses to writing questions supporting their point of view.",
+            "description": "This course aims at preparing students to use academic skills in English.",
+            "learning_outcomes": [
+                "recognise the relationship between ideas in academic texts",
+                "research an academic topic using a variety of sources",
+                "summarise information in an academic text",
+                "paraphrase information in an academic text",
+                "quote information in an academic text",
+                "synthesize information in an academic text.",
+                "write texts on an academic topic presenting their own view point"
+            ],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "2",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "3",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "4",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "5",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "6",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "7",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "8",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "9",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "10",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "11",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "12",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "13",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "14",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "15",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "16",
+                    "topic": "Review of the Semester"
+                }
+            ]
+        }
+    },
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "SE 115",
+            "name": "Introduction to Programming I",
+            "ects": "6",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=SE 115&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "2",
+            "lab_hours": "2",
+            "local_credit": "3",
+            "objectives": "This course will introduce the basic elements of structural programming. Java programming language will be used in code applications. Topics include the concept of type, main types, expressions, standard functions, input/output statements, control structures, selection statements, repetition statements, functions, modularity in programming, global and local variables, dynamic variables, and arrays.",
+            "description": "This course introduces the students to the fundamental concepts of programming using Java programming language.",
+            "learning_outcomes": [
+                "will be able to define the fundamental concepts in programming,",
+                "will be able to write, compile and debug programs in Java language,",
+                "will be able to use control structures (decision and loop statements) in Java codes,",
+                "will be able to design functions in Java codes,",
+                "will be able to use arrays in Java codes,",
+                "will be able to define classes in Java codes."
+            ],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Introduction"
+                },
+                {
+                    "week": "2",
+                    "topic": "Variables"
+                },
+                {
+                    "week": "3",
+                    "topic": "Control"
+                },
+                {
+                    "week": "4",
+                    "topic": "Loop"
+                },
+                {
+                    "week": "5",
+                    "topic": "Functions"
+                },
+                {
+                    "week": "6",
+                    "topic": "Recursion"
+                },
+                {
+                    "week": "7",
+                    "topic": "Arrays"
+                },
+                {
+                    "week": "8",
+                    "topic": "Midterm 1"
+                },
+                {
+                    "week": "9",
+                    "topic": "Introduction to Classes"
+                },
+                {
+                    "week": "10",
+                    "topic": "Text Processing"
+                },
+                {
+                    "week": "11",
+                    "topic": "File I/O"
+                },
+                {
+                    "week": "12",
+                    "topic": "Algorithms"
+                },
+                {
+                    "week": "13",
+                    "topic": "Exercises"
+                },
+                {
+                    "week": "14",
+                    "topic": "Review and Project Presentations"
+                },
+                {
+                    "week": "15",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "16",
+                    "topic": "Review of the Semester"
+                }
+            ]
+        }
+    },
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "PHYS 100",
+            "name": "General Physics I",
+            "ects": "6",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=PHYS 100&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "2",
+            "lab_hours": "2",
+            "local_credit": "3",
+            "objectives": "The purpose of this course is to teach the fundamental laws of mechanics and introduce students to the basic applications of these laws.",
+            "description": "In this course, we will discuss the subjects of motion along a straight line, motion in two and three dimensions, Newton’s laws, work and kinetic energy, potential energy and conservation of energy, momentum, collisions, dynamics of rotations, gravitation and periodic motion.",
+            "learning_outcomes": [
+                "determine the motion of objects in one, two and three dimensions using the laws of kinematics.",
+                "use Newton’s laws to solve mechanics problems.",
+                "calculate the kinetic and potential energies of a given mechanical system.",
+                "analyze the dynamics of collisions and explosions using the concept of momentum.",
+                "discuss the rotations of rigid bodies and their dynamics.",
+                "describe the dynamics of objects in circular and periodic motion.",
+                "use experimental setups to collect and analyze data."
+            ],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Introduction, measurement, estimating"
+                },
+                {
+                    "week": "2",
+                    "topic": "Vectors"
+                },
+                {
+                    "week": "3",
+                    "topic": "Kinematics in one dimension"
+                },
+                {
+                    "week": "4",
+                    "topic": "Kinematics in two and three dimensions"
+                },
+                {
+                    "week": "5",
+                    "topic": "Newton’s laws"
+                },
+                {
+                    "week": "6",
+                    "topic": "Applications of Newton’s laws"
+                },
+                {
+                    "week": "7",
+                    "topic": "Gravitations"
+                },
+                {
+                    "week": "8",
+                    "topic": "Midterm exam"
+                },
+                {
+                    "week": "9",
+                    "topic": "Work and Kinetic energy"
+                },
+                {
+                    "week": "10",
+                    "topic": "Potential energy and conservation of energy"
+                },
+                {
+                    "week": "11",
+                    "topic": "Linear momentum conservation"
+                },
+                {
+                    "week": "12",
+                    "topic": "Linear momentum and collisions"
+                },
+                {
+                    "week": "13",
+                    "topic": "Rotational motion"
+                },
+                {
+                    "week": "14",
+                    "topic": "Angular momentum"
+                },
+                {
+                    "week": "15",
+                    "topic": "Semester review"
+                },
+                {
+                    "week": "16",
+                    "topic": "Final exam"
+                }
+            ]
+        }
+    },
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "FENG 101",
+            "name": "Fundamentals of Engineering Culture",
+            "ects": "4",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=FENG 101&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "2",
+            "lab_hours": "0",
+            "local_credit": "2",
+            "objectives": "",
+            "description": "",
+            "learning_outcomes": [
+                "identify important milestones of the historical advancements in engineering.",
+                "discuss ethical aspects of an engineering application.",
+                "outline the environmental, social, and economic sustainability indicators of engineering applications.",
+                "discuss the public health and safety impacts of an engineering application.",
+                "define the capabilities of an engineer who has an entrepreneurial mindset, must have.",
+                "use the important databases that engineers use to obtain information."
+            ],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "2",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "3",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "4",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "5",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "6",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "7",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "8",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "9",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "10",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "11",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "12",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "13",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "14",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "15",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "16",
+                    "topic": "Review of the Semester"
+                }
+            ]
+        }
+    },
+    {
+        "meta": {
+            "department": "Software Engineering",
+            "semester": "1. Year Fall Semester",
+            "code": "SFL 1013",
+            "name": "Second Foreign Languages I",
+            "ects": "3",
+            "link": "https://ects.ieu.edu.tr/new/syllabus.php?section=se.cs.ieu.edu.tr&course_code=SFL 1013&currType=before_2025"
+        },
+        "details": {
+            "theory_hours": "2",
+            "lab_hours": "2",
+            "local_credit": "3",
+            "objectives": "",
+            "description": "",
+            "learning_outcomes": [],
+            "weekly_schedule": [
+                {
+                    "week": "1",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "2",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "3",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "4",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "5",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "6",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "7",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "8",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "9",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "10",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "11",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "12",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "13",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "14",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "15",
+                    "topic": "Review of the Semester"
+                },
+                {
+                    "week": "16",
+                    "topic": "Review of the Semester"
+                }
+            ]
+        }
+    }
+]
