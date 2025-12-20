@@ -35,61 +35,88 @@ class CourseRetriever:
             print(f"❌ Retriever Başlatılamadı: {e}")
             raise e
 
-    def retrieve_context(self, query_text, n_results=5, filters=None):
-        """
-        KATEGORİLER: A, B, C, E
-        Kullanım: Metin bazlı sorular ve tuzak sorular için en yakın içeriği getirir.
-        Not: Tuzak sorularda (E) en yakın 'alakasız' dersi getirecektir, bu istenen davranıştır.
-        """
+    def _format_filters(self, filters):
+        """ChromaDB için filtreleri $and formatına çevirir."""
+        if not filters: return None
+        if len(filters) == 1: return filters
+        return {"$and": [{k: v} for k, v in filters.items()]}
+    def retrieve_exact_match(self, course_code):
+        """KOD İLE KESİN ARAMA (Hibrit Yaklaşım)"""
+        if not course_code or course_code == "None":
+            return None
+
+        # Örn: Girdi "se360" -> ["SE360", "SE 360", "SE-360"]
+        base_code = course_code.upper().strip()
+        variations = [base_code]
+
+        if " " in base_code:
+            variations.append(base_code.replace(" ", ""))
+            # Boşluk yoksa harf/sayı arasına boşluk koymayı dene (SE360 -> SE 360)
+        else:
+            # Basit heuristic: İlk sayıdan önce boşluk koy
+            for i, char in enumerate(base_code):
+                if char.isdigit():
+                    variations.append(base_code[:i] + " " + base_code[i:])
+                    break
+
+        print(f"   🔍 Kod Varyasyonları deneniyor: {variations}")
+
+        # 2. Metadata Araması (En Güvenilir)
+        for code in variations:
+            try:
+                # Metadata'da 'course_code' alanı bu varyasyon mu?
+                result = self.collection.get(
+                    where={"course_code": code},
+                    include=['documents', 'metadatas']
+                )
+                if result['ids']:
+                    doc = result['documents'][0]
+                    meta = result['metadatas'][0]
+                    return f"=== SPECIFIC COURSE FOUND ({meta['course_code']}) ===\n{doc}"
+            except:
+                continue
         try:
+            # Metadata içinde course_code ara
+            result = self.collection.get(
+                where={"course_code": course_code},
+                include=['documents', 'metadatas']
+            )
+            if result['ids']:
+                # Bulunduysa formatla ve dön
+                doc = result['documents'][0]
+                return f"=== EXACT MATCH FOUND ===\n{doc}"
+            return None  # Bulunamadı (Tuzak olabilir)
+        except:
+            return None
+    def retrieve_context(self, query_text, n_results=5, filters=None):
+        try:
+            final_filter = self._format_filters(filters)
             results = self.collection.query(
                 query_texts=[query_text],
                 n_results=n_results,
-                where=filters  # AND, OR mantığı buraya sözlük olarak gelir
+                where=final_filter
             )
+            if not results['documents'] or not results['documents'][0]: return ""
 
             contexts = []
-            if not results['documents'] or not results['documents'][0]:
-                return ""
-
             for i in range(len(results['documents'][0])):
                 doc = results['documents'][0][i]
                 meta = results['metadatas'][0][i]
-
-                # LLM için temiz, okunabilir format
-                formatted = f"""
-                [DERS KAYDI]
-                Code: {meta['course_code']} ({meta['department']})
-                Name: {meta.get('course_name', 'Unknown')}
-                Semester: {meta['semester']} | Type: {meta['type']}
-                ECTS: {meta.get('ects', '0')}
-                İÇERİK: {doc}
-                """
-                contexts.append(formatted)
-
-            return "\n".join(contexts)
-
+                contexts.append(f"[DERS: {meta.get('course_code')}]\n{doc}")
+            return "\n\n".join(contexts)
         except Exception as e:
             print(f"Arama Hatası: {e}")
             return ""
-
     def count_courses(self, filters=None):
-        """
-        KATEGORİ: D (Nicel / Sayma Soruları)
-        Örn: "Yazılım Mühendisliğinde son sınıfta kaç seçmeli ders var?"
-        Vektör araması yapmaz, kesin sayı döner.
-        """
+        """MATEMATİK HATASI DÜZELTİLDİ: $and yapısı eklendi."""
         try:
-            # Metadata üzerinden sorgu yapıp sadece ID'leri çeker (Hızlıdır)
-            result = self.collection.get(
-                where=filters,
-                include=['metadatas']
-            )
+            final_filter = self._format_filters(filters)
+            # Sadece ID sayıyoruz (Hızlı)
+            result = self.collection.get(where=final_filter, include=['metadatas'])
             return len(result['ids'])
         except Exception as e:
             print(f"Sayma Hatası: {e}")
             return 0
-
     def get_metadata(self, filters=None):
         """
         KATEGORİ: D (Hesaplama / Analiz Soruları)

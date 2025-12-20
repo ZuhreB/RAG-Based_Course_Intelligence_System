@@ -1,102 +1,171 @@
 import json
+import os
 import chromadb
 from chromadb.utils import embedding_functions
+from dotenv import load_dotenv
 
+# 1. ORTAM DEĞİŞKENLERİNİ YÜKLE
+load_dotenv()
 
-# --- 1. AYARLAR ---
-# Senin bulduğun Sentence-BERT modelini Chroma'ya tanıtıyoruz.
-# Bu fonksiyon, metinleri otomatik olarak vektöre çevirecek (model.encode işlemini yapar).
+api_key = os.getenv("CHROMA_API_KEY")
+tenant = os.getenv("CHROMA_TENANT")
+database = os.getenv("CHROMA_DATABASE")
+
+if not api_key:
+    print("HATA: .env dosyasında CHROMA_API_KEY bulunamadı.")
+    exit()
+
+print("🌐 Chroma Cloud'a bağlanılıyor...")
+
+# 2. MODEL VE İSTEMCİ AYARLARI
 sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name="all-MiniLM-L6-v2"
 )
 
-# ChromaDB Cloud Bağlantısı
-# BURADAKİ BOŞLUKLARA KENDİ API KEY VE TENANT BİLGİLERİNİ YAPIŞTIR
-client = chromadb.CloudClient(
-)
-
-# Koleksiyonu (Tabloyu) Oluştur
-# Eğer daha önce oluşturduysan 'get_collection', yoksa 'create_collection' çalışır.
 try:
-    collection = client.get_or_create_collection(
+    client = chromadb.CloudClient(
+        api_key=api_key,
+        tenant=tenant,
+        database=database
+    )
+
+    # Temiz başlangıç: Eski koleksiyonu sil
+    try:
+        client.delete_collection("engineering_courses")
+        print("🧹 Eski koleksiyon silindi, temiz sayfa açılıyor.")
+    except:
+        pass  # Zaten yoksa hata vermesin
+
+    # Yeni koleksiyon oluştur
+    collection = client.create_collection(
         name="engineering_courses",
         embedding_function=sentence_transformer_ef
     )
-    print("Koleksiyon başarıyla bağlandı.")
+    print("✅ Yeni 'engineering_courses' koleksiyonu oluşturuldu.")
+
 except Exception as e:
-    print(f"Bağlantı hatası: {e}")
+    print(f"❌ Bağlantı Hatası: {e}")
     exit()
 
-# --- 2. VERİYİ YÜKLEME ---
-json_file = 'all_engineering_curricula.json'  # Önceki adımda oluşturduğumuz dosya
+# 3. VERİ OKUMA VE HAZIRLIK
+json_file = 'all_engineering_curricula.json'
 
 try:
     with open(json_file, 'r', encoding='utf-8') as f:
         course_data = json.load(f)
-    print(f"JSON dosyasından {len(course_data)} ders okundu.")
+    print(f"📂 JSON yüklendi. İşlenecek ders sayısı: {len(course_data)}")
 except FileNotFoundError:
-    print("Hata: JSON dosyası bulunamadı.")
+    print("❌ JSON dosyası bulunamadı! Dosya adını kontrol et.")
     exit()
-
-print("Veriler Chroma Cloud'a yükleniyor... (Bu işlem internet hızına göre sürebilir)")
 
 documents = []
 metadatas = []
 ids = []
 
-# Verileri işle
+print("🚀 Veriler işleniyor (Her detay dahil ediliyor)...")
+
 for index, course in enumerate(course_data):
 
-    # A. Metin Hazırlığı (Document)
-    # Yapay zeka aramayı bu metin üzerinde yapacak.
-    # Listeleri (topics, outcomes) string'e çeviriyoruz.
-    topics_str = ", ".join(course.get('weekly_topics', []))
-    outcomes_str = ", ".join(course.get('learning_outcomes', []))
+    # --- A. LİSTELERİ VE KARMAŞIK YAPILARI METNE ÇEVİRME ---
 
-    # Tüm bilgileri tek bir paragraf yapıyoruz
+    # 1. Weekly Topics (Liste -> String)
+    topics_list = course.get('weekly_topics', [])
+    if isinstance(topics_list, list):
+        # Her konuyu alt alta madde işaretiyle yaz
+        topics_str = "\n".join([f"  - {t}" for t in topics_list])
+    else:
+        topics_str = str(topics_list)
+
+    # 2. Learning Outcomes (Liste -> String)
+    outcomes_list = course.get('learning_outcomes', [])
+    if isinstance(outcomes_list, list):
+        outcomes_str = "\n".join([f"  - {o}" for o in outcomes_list])
+    else:
+        outcomes_str = str(outcomes_list)
+
+    # 3. Evaluation System (Liste içinde Sözlük -> Detaylı String)
+    # Örn: [{"activity": "Midterm", "count": 1, "weight_percent": 30}, ...]
+    eval_list = course.get('evaluation_system', [])
+    eval_str = ""
+    if isinstance(eval_list, list):
+        for item in eval_list:
+            activity = item.get('activity', 'Unknown Activity')
+            count = item.get('count', '-')
+            weight = item.get('weight_percent', '-')
+            eval_str += f"  - {activity}: Count ({count}), Weight (%{weight})\n"
+    elif eval_list:
+        eval_str = str(eval_list)
+    else:
+        eval_str = "  No evaluation information provided."
+
+    # --- B. TÜM DETAYLARI İÇEREN METİN BLOĞU (LLM BUNU OKUYACAK) ---
+    # Burası LLM'in "Context" olarak göreceği kısımdır. Ne kadar düzenli olursa o kadar iyi anlar.
+
     text_content = f"""
-    Course Code: {course['course_code']}
-    Course Name: {course['course_name']}
-    Department: {course['department']}
-    Semester: {course['semester']}
-    Type: {course['type']}
-    Description: {course['description']}
-    Objectives: {course['objectives']}
-    Weekly Topics: {topics_str}
-    Learning Outcomes: {outcomes_str}
+    ================ COURSE DETAILS ================
+    Course Code: {course.get('course_code', 'N/A')}
+    Course Name: {course.get('course_name', 'N/A')}
+    Department: {course.get('department', 'N/A')}
+    Link: {course.get('link', 'N/A')}
+
+    --- ACADEMIC INFO ---
+    Semester: {course.get('semester', 'N/A')}
+    Type: {course.get('type', 'N/A')}
+    ECTS Credits: {course.get('ects', 'N/A')}
+    Local Credit: {course.get('local_credit', 'N/A')}
+
+    --- WORKLOAD ---
+    Theory Hours: {course.get('theory_hours', 'N/A')}
+    Lab Hours: {course.get('lab_hours', 'N/A')}
+
+    --- REQUIREMENTS ---
+    Prerequisites: {course.get('prerequisites', 'None')}
+
+    --- DESCRIPTION & OBJECTIVES ---
+    Description: {course.get('description', 'N/A')}
+    Objectives: {course.get('objectives', 'N/A')}
+
+    --- EVALUATION SYSTEM (GRADING) ---
+    {eval_str}
+
+    --- WEEKLY COURSE TOPICS ---
+    {topics_str}
+
+    --- LEARNING OUTCOMES ---
+    {outcomes_str}
+    ================================================
     """
 
-    # B. Metadata Hazırlığı
-    # Filtreleme yaparken (örn: "Sadece Computer Engineering getir") bu alanları kullanacağız.
-    # ÖNEMLİ: Chroma metadata içinde Python Listesi [] kabul etmez, sadece String, Int, Float.
+    # --- C. METADATA HAZIRLIĞI (FİLTRELEME İÇİN) ---
+    # Sadece sayısal veya kesin filtreleme yapılacak alanları buraya alıyoruz.
+    # Not: ChromaDB metadata değerleri string, int, float veya bool olmalıdır.
     meta = {
-        "course_code": course['course_code'],
-        "department": course['department'],
-        "semester": course['semester'],
-        "type": course['type'],
-        "ects": str(course['ects']),  # Sayı veya string olabilir, string garanti
-        "link": course['link']
+        "course_code": str(course.get('course_code', '')),
+        "department": str(course.get('department', '')),
+        "semester": str(course.get('semester', '')),
+        "type": str(course.get('type', '')),
+        "ects": str(course.get('ects', '0')),  # Sayısal işlem gerekebilir diye string tutuyoruz
+        "link": str(course.get('link', ''))
     }
 
     documents.append(text_content.strip())
     metadatas.append(meta)
-    ids.append(f"{course['department']}_{course['course_code']}")  # Benzersiz ID: Software Engineering_SE101
+    # Benzersiz ID: Dept_Code_Index (Index ekledik ki aynı kodlu ders varsa çakışmasın)
+    ids.append(f"{course.get('department')}_{course.get('course_code')}_{index}")
 
-    # C. Batch Upload (Parça Parça Yükleme)
-    # Cloud bağlantısında kopma olmaması için her 50 derste bir gönderiyoruz.
+    # --- D. PARÇA PARÇA YÜKLEME (BATCH UPLOAD) ---
     if len(documents) >= 50:
         collection.add(
             documents=documents,
             metadatas=metadatas,
             ids=ids
         )
-        print(f"{index + 1} ders yüklendi...")
-        # Listeleri temizle
+        print(f"   -> {index + 1} ders yüklendi...")
         documents = []
         metadatas = []
         ids = []
 
-# Kalan son parçayı yükle
+# Kalan son paket
 if documents:
     collection.add(
         documents=documents,
@@ -104,4 +173,4 @@ if documents:
         ids=ids
     )
 
-print(f"\n✅ İŞLEM TAMAM! Tüm veriler Chroma Cloud veritabanına yüklendi.")
+print(f"\n🎉 İŞLEM TAMAMLANDI! Toplam {len(course_data)} ders tüm detaylarıyla yüklendi.")

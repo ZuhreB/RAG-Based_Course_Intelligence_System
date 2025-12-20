@@ -55,6 +55,7 @@ class CourseIntelligenceSystem:
             route_result = self.router.route_query(user_query)
 
             intent = route_result.get("intent")
+            spec_code = route_result.get("specific_course_code")  # YENİ
             filters = self._build_filters(route_result)
 
             # Router'ın zenginleştirdiği arama kelimelerini birleştir
@@ -72,6 +73,11 @@ class CourseIntelligenceSystem:
 
             # SENARYO B: ARAMA ve KARŞILAŞTIRMA (SEARCH / COMPARE)
             else:
+
+                context = None
+                if spec_code and spec_code != "None":
+                    print(f"🔍 '{spec_code}' için veritabanına doğrudan bakılıyor...")
+                    context = self.retriever.retrieve_exact_match(spec_code)
                 # Karşılaştırma ise filtreleri genelde kaldırırız (Router 'None' dönmüştür zaten)
                 # Ancak kullanıcı "Yazılım Müh içindeki zorunlu ve seçmelileri kıyasla" demiş olabilir, o yüzden filtreyi koruyoruz.
 

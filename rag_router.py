@@ -39,15 +39,17 @@ class QueryRouter:
           "intent": "search" | "count" | "compare",
           "target_department": "Software Engineering" | "Computer Engineering" | "Industrial Engineering" | "None",
           "course_type": "Mandatory" | "Elective" | "None",
+          "specific_course_code": "SE 360" | "CE 477" | "EEE 462 "| "IE 222" | "None",  
           "search_queries": ["list", "of", "keywords", "for", "vector", "search"]
         }
 
         STRICT RULES:
-        1. DEPARTMENT INFERENCE: If the user mentions a course code (e.g., 'SE 311'), automatically set 'target_department' to the corresponding department (e.g., 'Software Engineering').
-        2. NO CENSORSHIP (CRITICAL): If the user asks for non-existent or illogical topics (e.g., 'Quantum Thermodynamics', 'Telepathy', 'Magic'), YOU MUST INCLUDE these keywords exactly in 'search_queries'. Do not filter them out.
-        3. GENERALIZATION: If the user asks about a specific course code but wants to find "similar courses" (e.g., "grading like SE 311"), do NOT include "SE 311" in 'search_queries'. Instead, use general terms like "grading", "evaluation".
-        4. DEFAULTS: If no specific department is mentioned or implied, set 'target_department' to "None".
-        5. OUTPUT FORMAT: Return ONLY valid JSON.
+        1. IF user mentions a code like 'SE 360' or 'CE 477', put it in 'specific_course_code'.
+        2. IF 'specific_course_code' is found, set 'target_department' accordingly.
+        3. NO CENSORSHIP (CRITICAL): If the user asks for non-existent or illogical topics (e.g., 'Quantum Thermodynamics', 'Telepathy', 'Magic'), YOU MUST INCLUDE these keywords exactly in 'search_queries'. Do not filter them out . Be creative for answer.
+        4. GENERALIZATION: If the user asks about a specific course code but wants to find "similar courses" (e.g., "grading like SE 311"), do NOT include "SE 311" in 'search_queries'. Instead, use general terms like "grading", "evaluation".
+        5. DEFAULTS: If no specific department is mentioned or implied, set 'target_department' to "None".
+        6. OUTPUT FORMAT: Return ONLY valid JSON.
         """
 
         try:
@@ -71,6 +73,7 @@ class QueryRouter:
                 "intent": "search",
                 "target_department": "None",
                 "course_type": "None",
+                "specific_course_code": "None",
                 "search_queries": [user_query]
             }
 

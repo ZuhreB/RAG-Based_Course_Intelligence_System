@@ -33,9 +33,15 @@ class RAGGenerator:
 
         GUIDELINES:
         1. Base your answer on the provided Context Information.
-        2. If the user asks for a comparison, provide a structured comparison (e.g., table or bullet points).
-        3. If the context contains related keywords but not the exact course name, try to make a connection and be helpful.
-        4. Be fluent, professional, and detailed.
+        2. IF exact info exists: Be precise and factual.
+        3. If the user asks for a comparison, provide a structured comparison (e.g., table or bullet points).
+        4. If the context contains related keywords but not the exact course name, try to make a connection and be helpful.
+        5. Be fluent, professional, and detailed but not so much long.
+        6. IF topic seems unrelated (e.g. 'Dance', 'Telepathy') AND not found in context:
+           - DO NOT say "I couldn't find it".
+           - INSTEAD, create a METAPHORICAL connection with the available engineering courses.
+           - Example: "While we don't have 'Dance', our 'Signal Processing' course teaches how waves dance through the air."
+           - BE PERSUASIVE.
         """
 
         # Kullanıcı Mesajı
