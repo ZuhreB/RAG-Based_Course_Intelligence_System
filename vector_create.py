@@ -103,6 +103,7 @@ for index, course in enumerate(course_data):
 
     text_content = f"""
     ================ COURSE DETAILS ================
+    DEPARTMENT: {course.get('department')}
     Course Code: {course.get('course_code', 'N/A')}
     Course Name: {course.get('course_name', 'N/A')}
     Department: {course.get('department', 'N/A')}
@@ -144,7 +145,7 @@ for index, course in enumerate(course_data):
         "department": str(course.get('department', '')),
         "semester": str(course.get('semester', '')),
         "type": str(course.get('type', '')),
-        "ects": str(course.get('ects', '0')),  # Sayısal işlem gerekebilir diye string tutuyoruz
+        "ects": str(course.get('ects', '0')),
         "link": str(course.get('link', ''))
     }
 

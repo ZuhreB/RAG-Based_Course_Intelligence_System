@@ -36,7 +36,6 @@ class CourseRetriever:
             raise e
 
     def _format_filters(self, filters):
-        """ChromaDB için filtreleri $and formatına çevirir."""
         if not filters: return None
         if len(filters) == 1: return filters
         return {"$and": [{k: v} for k, v in filters.items()]}
@@ -76,13 +75,13 @@ class CourseRetriever:
             except:
                 continue
         try:
-            # Metadata içinde course_code ara
+
             result = self.collection.get(
                 where={"course_code": course_code},
                 include=['documents', 'metadatas']
             )
             if result['ids']:
-                # Bulunduysa formatla ve dön
+
                 doc = result['documents'][0]
                 return f"=== EXACT MATCH FOUND ===\n{doc}"
             return None  # Bulunamadı (Tuzak olabilir)
@@ -108,10 +107,8 @@ class CourseRetriever:
             print(f"Arama Hatası: {e}")
             return ""
     def count_courses(self, filters=None):
-        """MATEMATİK HATASI DÜZELTİLDİ: $and yapısı eklendi."""
         try:
             final_filter = self._format_filters(filters)
-            # Sadece ID sayıyoruz (Hızlı)
             result = self.collection.get(where=final_filter, include=['metadatas'])
             return len(result['ids'])
         except Exception as e:
@@ -133,7 +130,57 @@ class CourseRetriever:
         except Exception as e:
             print(f"Metadata Çekme Hatası: {e}")
             return []
+    def get_courses_by_metadata(self, department, year, semester=None):
+        """
+        LİSTELEME İŞLEMİ İÇİN ÖZEL FONKSİYON
+        Vektör araması yapmaz, Metadata üzerinden kesin filtreleme yapar.
+        """
+        try:
+            # 1. Önce sadece Bölüm filtresiyle o bölümün tüm derslerini çek
+            # (ChromaDB'de 'contains' operatörü zayıf olduğu için Python tarafında süzeceğiz)
+            filters = {"department": department}
 
+            # Tüm derslerin metadata'sını çek
+            results = self.collection.get(
+                where=filters,
+                include=['metadatas', 'documents']
+            )
+
+            if not results['ids']: return None
+
+            filtered_docs = []
+
+            # 2. Python tarafında Yıl ve Dönem Filtrelemesi
+            for i, meta in enumerate(results['metadatas']):
+                course_sem = meta.get('semester', '')  # Örn: "2. Year Fall Semester"
+
+                # YIL FİLTRESİ (Örn: "2" geldiyse "2. Year" metnini ara)
+                year_match = True
+                if year and year != "None":
+                    target_str = f"{year}. Year"
+                    if target_str not in course_sem:
+                        year_match = False
+
+                # DÖNEM FİLTRESİ
+                sem_match = True
+                if semester and semester != "None":
+                    if semester not in course_sem:
+                        sem_match = False
+
+                # Eşleşiyorsa listeye ekle
+                if year_match and sem_match:
+                    # Context'i çok şişirmemek için özet ekleyelim
+                    doc_summary = f"[COURSE: {meta.get('course_code')}] {meta.get('semester')} - {results['documents'][i][:300]}..."
+                    filtered_docs.append(doc_summary)
+
+            if not filtered_docs:
+                return f"No courses found for {department} Year {year}."
+
+            return "\n\n".join(filtered_docs)
+
+        except Exception as e:
+            print(f"Liste Hatası: {e}")
+            return None
 
 # --- 🧪 DOĞRULAMA TESTLERİ (Verification) ---
 if __name__ == "__main__":
