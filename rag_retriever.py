@@ -51,6 +51,9 @@ class CourseRetriever:
         if filters.get("type") == "Mandatory":
             chroma_filters["type"] = "Mandatory"
 
+        # NOT: Yıl (year) filtresini Python tarafında yapıyoruz,
+        # çünkü ChromaDB bazen integer/string karışıklığı yapabiliyor.
+
         # Filtre formatı
         if len(chroma_filters) > 1:
             return {"$and": [{k: v} for k, v in chroma_filters.items()]}
@@ -99,24 +102,18 @@ class CourseRetriever:
 
     def retrieve_context(self, query_text, n_results=15, filters=None):
         """
-        SEARCH ve COMPARE için gelişmiş arama.
-        AKILLI MOD: Eğer Yıl/Dönem filtresi varsa, vektör limitini (n_results) yok sayar
-        ve o dönemdeki TÜM dersleri getirir. Böylece hesaplama soruları eksiksiz olur.
+        SEARCH ve COMPARE için optimize edilmiş arama.
+        DÜZELTME: Seçmeli ders aramalarında 'Any' (Havuz) yılına izin verilir.
         """
         try:
-            # Filtreleri kontrol et
             target_year = filters.get("year") if filters else None
             target_semester = filters.get("semester") if filters else None
 
-            # 1. STRATEJİ BELİRLEME
-            # Eğer yıl veya dönem filtresi varsa, bu bir "Liste" veya "Hesaplama" sorusudur.
-            # Vektör benzerliğine değil, metadata kesinliğine güvenmeliyiz.
+            # --- OPTİMİZASYON 1: Fetch Limit ---
             if target_year or target_semester:
-                # Limit koyma, ne varsa getir (Python tarafında süzeceğiz)
-                fetch_limit = 100
-                print(f"   🚀 Akıllı Mod Devrede: '{target_year}. Yıl' için tam tarama yapılıyor...")
+                fetch_limit = 40
+                print(f"   🚀 Akıllı Mod (Eco): '{target_year or target_semester}' için tarama...")
             else:
-                # Normal arama, limitli
                 fetch_limit = n_results * 2
 
             final_filter = self._format_filters(filters)
@@ -136,25 +133,44 @@ class CourseRetriever:
             filtered_contexts = []
 
             for i, (doc, meta, dist) in enumerate(zip(docs, metadatas, distances)):
-                # A) YIL KONTROLÜ
-                if target_year and f"{target_year}. Year" not in meta.get("semester", ""):
-                    continue
 
-                    # B) DÖNEM KONTROLÜ
+                course_year = meta.get("year")
+
+                # --- A) YIL KONTROLÜ (ESNETİLMİŞ) ---
+                if target_year and course_year != target_year:
+                    # EĞER Seçmeli Ders aranıyorsa ve dersin yılı "Any" (Havuz) ise İZİN VER
+                    # Böylece 3. sınıfı sorunca havuz da gelir.
+                    is_elective_search = filters.get("type") == "Elective"
+                    is_pool_course = course_year == "Any"
+
+                    if is_elective_search and is_pool_course:
+                        pass  # İzin ver, listeye ekle
+                    else:
+                        continue  # Diğer durumlarda katı kurala devam
+
+                # B) DÖNEM KONTROLÜ
                 if target_semester and target_semester not in meta.get("semester", ""):
                     continue
 
-                # C) Benzerlik eşiği
-                # Eğer Akıllı Moddaysak (Yıl filtresi varsa), benzerlik eşiğini gevşet veya kaldır.
-                # Çünkü "Physics" dersi "Software" sorgusuna benzemeyebilir ama o yılın dersidir.
-                if not target_year and dist > 1.6:
+                # C) BENZERLİK EŞİĞİ (Sadece genel aramada)
+                if not target_year and not target_semester and dist > 1.6:
                     continue
-                clean_doc = doc[:1500] + "...(kısaltıldı)" if len(doc) > 1500 else doc
-                formatted_doc = f"[COURSE: {meta.get('course_code')} - {meta.get('course_name')}]\nDETAILS: {meta.get('semester')} | ECTS: {meta.get('ects')} | {meta.get('type')}\nCONTENT: {doc}"
+
+                # --- OPTİMİZASYON 2: Karakter Limiti ---
+                max_chars = 400
+                if len(filtered_contexts) < 3:
+                    max_chars = 1000
+
+                clean_doc = doc[:max_chars] + "..." if len(doc) > max_chars else doc
+
+                formatted_doc = (
+                    f"[COURSE: {meta.get('course_code')} - {meta.get('course_name')}]\n"
+                    f"INFO: Year {meta.get('year')} | {meta.get('type')} | {meta.get('ects')} ECTS\n"
+                    f"CONTENT: {clean_doc}"
+                )
                 filtered_contexts.append(formatted_doc)
 
-                # Eğer Akıllı Moddaysak (Yıl filtresi varsa) limit uygulama, hepsini al.
-                if not target_year and len(filtered_contexts) >= n_results:
+                if not target_year and not target_semester and len(filtered_contexts) >= n_results:
                     break
 
             if not filtered_contexts:
@@ -166,75 +182,102 @@ class CourseRetriever:
             print(f"Arama Hatası: {e}")
             return ""
     def count_courses(self, filters=None, search_keyword=None):
+        """GELİŞMİŞ SAYMA FONKSİYONU"""
+        try:
+            base_filter = self._format_filters(filters)
+            result = self.collection.get(
+                where=base_filter,
+                include=['metadatas']
+            )
+
+            metadatas = result['metadatas']
+            final_count = 0
+
+            target_year = filters.get("year") if filters else None
+            target_semester = filters.get("semester") if filters else None
+            target_type = filters.get("type") if filters else None
+
+            for meta in metadatas:
+                if target_year and meta.get("year") != target_year: continue
+                if target_semester and target_semester not in meta.get("semester", ""): continue
+
+                course_code = meta.get("course_code", "").upper()
+                course_type = meta.get("type", "")
+
+                if target_type == "Elective":
+                    if course_code.startswith("ELEC"):
+                        final_count += 1
+                    continue
+
+                elif target_type == "Mandatory":
+                    if course_type == "Mandatory" and not course_code.startswith("ELEC"):
+                        final_count += 1
+                    continue
+                else:
+                    final_count += 1
+
+            return final_count
+        except Exception as e:
+            print(f"Sayma Hatası: {e}")
+            return 0
+    def count_courses(self, filters=None, search_keyword=None):
         """
         GELİŞMİŞ SAYMA FONKSİYONU
-        - 'ELEC' kodlu dersleri tanır.
-        - Konu (keyword) bazlı sayım yapar.
-        - Weekly Topics dahil her yere bakar.
+        - Yıl bazlı sorularda sadece 'ELEC' slotlarını sayar.
+        - Havuz sorularını ayırır.
         """
         try:
             # 1. Veriyi Çek
             base_filter = self._format_filters(filters)
 
-            # Tüm veritabanını veya bölümü çek
+            # Tüm veritabanını çek (Python tarafında süzeceğiz)
             result = self.collection.get(
                 where=base_filter,
-                include=['metadatas', 'documents']
+                include=['metadatas']
             )
 
             metadatas = result['metadatas']
-            documents = result['documents']
             final_count = 0
 
-            # --- DÜZELTME: Filters None gelirse hata vermesin ---
+            # Filtre Değişkenleri
             target_year = filters.get("year") if filters else None
             target_semester = filters.get("semester") if filters else None
             target_type = filters.get("type") if filters else None
 
-            for i, meta in enumerate(metadatas):
-                # --- YIL ve DÖNEM KONTROLÜ ---
-                semester_str = meta.get("semester", "")
-
-                if target_year and f"{target_year}. Year" not in semester_str:
-                    continue
-                if target_semester and target_semester not in semester_str:
+            for meta in metadatas:
+                # --- A) YIL KONTROLÜ (YENİLENMİŞ) ---
+                if target_year and meta.get("year") != target_year:
                     continue
 
-                # --- TÜR ve KOD ANALİZİ ---
+                # --- B) DÖNEM KONTROLÜ ---
+                if target_semester and target_semester not in meta.get("semester", ""):
+                    continue
+
                 course_code = meta.get("course_code", "").upper()
-                course_name = meta.get("course_name", "").lower()
+                course_type = meta.get("type", "")
 
-                # 1. Senaryo: Seçmeli Ders Sayımı
+                # --- C) TÜR ANALİZİ ---
+
+                # 1. Senaryo: SEÇMELİ DERS SAYIMI
                 if target_type == "Elective":
+                    # Kural: "3. sınıfta kaç seçmeli var?" dendiğinde
+                    # Sadece müfredat SLOTLARINI (ELEC xxx) sayıyoruz.
+                    # Havuzdaki (CE 455 vb.) dersleri saymıyoruz çünkü onlar seçenek, zorunluluk sayısı değil.
                     if course_code.startswith("ELEC"):
                         final_count += 1
-                        continue
-                    if "elect" in course_name or "option" in course_name:
-                        final_count += 1
-                        continue
-                    if meta.get("type") == "Elective":
-                        final_count += 1
-                        continue
+                    # Not: Eğer kullanıcı yıl belirtmezse (Genel havuz sorgusu),
+                    # Router'dan gelen intent farklı olacağı için buraya girmez veya
+                    # target_year None olacağı için hepsini sayabiliriz (isteğe bağlı).
+                    continue
 
-                # 2. Senaryo: Zorunlu Ders Sayımı
+                # 2. Senaryo: ZORUNLU DERS SAYIMI
                 elif target_type == "Mandatory":
-                    if meta.get("type") == "Mandatory":
-                        if course_code.startswith("ELEC") or "elect" in course_name:
-                            continue
-                        final_count += 1
-                        continue
-
-                # 3. Senaryo: KONU ARAMA (Keyword)
-                # Burası description, course name ve weekly topics'e bakar.
-                elif search_keyword:
-                    # documents[i] içinde Weekly Topics de var.
-                    content = (course_name + " " + documents[i]).lower()
-                    if search_keyword.lower() in content:
+                    if course_type == "Mandatory" and not course_code.startswith("ELEC"):
                         final_count += 1
                     continue
 
-                # 4. Senaryo: Genel Sayım
-                elif not target_type and not search_keyword:
+                # 3. Senaryo: GENEL / KELİME BAZLI
+                else:
                     final_count += 1
 
             return final_count
@@ -244,25 +287,6 @@ class CourseRetriever:
             return 0
 
     def get_courses_by_metadata(self, department, year=None, semester=None):
-        """LİSTELEME"""
-        try:
-            filters = {"department": department}
-            results = self.collection.get(where=filters, include=['metadatas'])
-
-            if not results['ids']: return None
-
-            filtered_list = []
-            for meta in results['metadatas']:
-                course_sem = meta.get('semester', '')
-                if year and f"{year}. Year" not in course_sem: continue
-                if semester and semester not in course_sem: continue
-                filtered_list.append(
-                    f"- {meta.get('course_code')} {meta.get('course_name')} ({meta.get('ects')} ECTS) [{meta.get('type')}]")
-
-            filtered_list.sort()
-            if not filtered_list: return f"No courses found for {department} Year {year}."
-            return "\n".join(filtered_list)
-
-        except Exception as e:
-            print(f"Liste Hatası: {e}")
-            return None
+        """Basit listeleme fonksiyonu"""
+        # ... (Bu kısım aynı kalabilir veya projede kullanılmıyorsa silinebilir)
+        pass

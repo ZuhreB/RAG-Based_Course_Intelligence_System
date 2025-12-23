@@ -136,14 +136,29 @@ for index, course in enumerate(course_data):
     {outcomes_str}
     ================================================
     """
+    sem_str = course.get('semester', '')
+    academic_year = "Unknown"
+
+    if "1." in sem_str:
+        academic_year = "1"
+    elif "2." in sem_str:
+        academic_year = "2"
+    elif "3." in sem_str:
+        academic_year = "3"
+    elif "4." in sem_str:
+        academic_year = "4"
+    elif "Elective" in sem_str:
+        academic_year = "Any"
 
     # --- C. METADATA HAZIRLIĞI (FİLTRELEME İÇİN) ---
     # Sadece sayısal veya kesin filtreleme yapılacak alanları buraya alıyoruz.
     # Not: ChromaDB metadata değerleri string, int, float veya bool olmalıdır.
+
     meta = {
         "course_code": str(course.get('course_code', '')),
         "department": str(course.get('department', '')),
         "semester": str(course.get('semester', '')),
+        "year": academic_year,
         "type": str(course.get('type', '')),
         "ects": str(course.get('ects', '0')),
         "link": str(course.get('link', ''))

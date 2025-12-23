@@ -25,11 +25,14 @@ class QueryRouter:
         You are a strict Query Router. Analyze the user's question and extract search parameters.
 
         INTENT CLASSIFICATION RULES (PRIORITY ORDER):
-        1. **COUNT INTENT (Top Priority):** - IF the user asks "How many...", "Count...", "Total number of...", "What is the number of..."
+        1. **COUNT INTENT (Top Priority):** - IF the user asks "How many...", "Count...", "Total number of...",
+         "What is the number of..."
            - YOU MUST set "intent": "count".
            - Do NOT set "search" for these queries.
-            "count": Questions asking for the PHYSICAL QUANTITY of items (e.g., "How many courses...", "Count the number of...").
-           - EXCEPTION: If user asks for "Total ECTS", "Sum of credits", "Total load", set intent to "search". (Because this requires math/reading, not just counting rows).
+            "count": Questions asking for the PHYSICAL QUANTITY of items (e.g., "How many courses...", 
+            "Count the number of...").
+           - EXCEPTION: If user asks for "Total ECTS", "Sum of credits", "Total load", set intent to "search". 
+           (Because this requires math/reading, not just counting rows).
         2. **LIST INTENT:** - IF the user asks "List...", "What are the courses...", "Show curriculum...", "List all...".
            - Set "intent": "list_curriculum".
 
@@ -40,7 +43,9 @@ class QueryRouter:
         4. **SEARCH INTENT:**
            - Specific topic searches (e.g., "Content of SE 302", "Does it have AI course?").
            - Set "intent": "search".
-            "search": Queries asking for specific details, rules, OR CALCULATIONS (e.g., "Calculate total ECTS", "Sum of credits", "Content of SE 302").
+            "search": Queries asking for specific details, rules, OR CALCULATIONS
+             (e.g., "Calculate total ECTS", "Sum of credits", "Content of SE 302").
+        
         DOMAIN KNOWLEDGE:
         - 'SE', 'Software' -> Software Engineering
         - 'CE', 'Computer' -> Computer Engineering
@@ -54,7 +59,8 @@ class QueryRouter:
         OUTPUT JSON SCHEMA:
         {
           "intent": "count" | "search" | "compare" | "list_curriculum",
-          "target_department": "Software Engineering" | "Computer Engineering" | "Industrial Engineering" | "Electrical and Electronics Engineering" | "None",
+          "target_department": "Software Engineering" | "Computer Engineering" 
+          | "Industrial Engineering" | "Electrical and Electronics Engineering" | "None",
           "course_type": "Mandatory" | "Elective" | "None",
           "specific_course_code": "String" | "None",  
           "academic_year": "1" | "2" | "3" | "4" | "None",
