@@ -22,21 +22,30 @@ class CourseIntelligenceSystem:
 
     def _build_filters(self, route_result):
         """
-        Router'dan gelen JSON verisini ChromaDB filtresine çevirir.
+        Router'dan gelen JSON verisini ChromaDB ve Python filtresine çevirir.
         """
         filters = {}
 
-        # Bölüm Filtresi
+        # 1. Bölüm Filtresi
         dept = route_result.get("target_department")
-        if dept and dept != "None":
+        if dept and dept not in ["None", None]:
             filters["department"] = dept
 
-        # Ders Tipi Filtresi
+        # 2. Ders Tipi Filtresi
         c_type = route_result.get("course_type")
-        if c_type and c_type != "None":
+        if c_type and c_type not in ["None", None]:
             filters["type"] = c_type
 
-        # Eğer filtre boşsa None dön (Tüm veritabanını ara)
+        # 3. Yıl Filtresi
+        year = route_result.get("academic_year")
+        if year and year not in ["None", None]:
+            filters["year"] = year
+
+        # 4. Dönem Filtresi
+        semester = route_result.get("semester")
+        if semester and semester not in ["None", None]:
+            filters["semester"] = semester
+
         return filters if filters else None
 
     def run(self):
@@ -55,11 +64,18 @@ class CourseIntelligenceSystem:
             route_result = self.router.route_query(user_query)
 
             intent = route_result.get("intent")
-            spec_code = route_result.get("specific_course_code")  # YENİ
+            spec_code = route_result.get("specific_course_code")
             filters = self._build_filters(route_result)
 
-            # Router'ın zenginleştirdiği arama kelimelerini birleştir
-            search_keywords = " ".join(route_result.get("search_queries", [user_query]))
+            # Router'dan gelen keywords listesini alıyoruz
+            search_keywords_list = route_result.get("search_queries", [user_query])
+
+            # GÜVENLİK ÖNLEMİ: Eğer spesifik bir kod varsa ama keywords içinde yoksa, ekle.
+            # Böylece Exact Match bulamazsa bile Vektör araması o kodu da arar.
+            if spec_code and spec_code != "None" and spec_code not in str(search_keywords_list):
+                search_keywords_list.insert(0, spec_code)
+
+            search_keywords = " ".join(search_keywords_list)
 
             print(f"⚙️  Niyet: {intent.upper()} | Filtre: {filters} | Arama: '{search_keywords}'")
 
@@ -73,18 +89,25 @@ class CourseIntelligenceSystem:
 
             # SENARYO B: ARAMA ve KARŞILAŞTIRMA (SEARCH / COMPARE)
             else:
-
                 context = None
+
+                # --- STRATEJİ 1: KESİN EŞLEŞME (EXACT MATCH) ---
+                # Eğer Router bir ders kodu yakaladıysa (Örn: SE 115), önce bunu doğrudan çek.
                 if spec_code and spec_code != "None":
                     print(f"🔍 '{spec_code}' için veritabanına doğrudan bakılıyor...")
                     context = self.retriever.retrieve_exact_match(spec_code)
-                # Karşılaştırma ise filtreleri genelde kaldırırız (Router 'None' dönmüştür zaten)
-                # Ancak kullanıcı "Yazılım Müh içindeki zorunlu ve seçmelileri kıyasla" demiş olabilir, o yüzden filtreyi koruyoruz.
 
-                # Veriyi Getir
-                n_results = 10 if intent == "compare" else 5
-                context = self.retriever.retrieve_context(search_keywords, n_results=n_results, filters=filters)
+                # --- STRATEJİ 2: VEKTÖR ARAMASI (SEMANTIC SEARCH) ---
+                # SADECE eğer yukarıda kesin eşleşme BULUNAMADIYSA (context is None) buraya gir.
+                # Eski kodda burası "if"siz olduğu için yukarıdaki doğru cevabı eziyordu.
+                if not context:
+                    # n_results ayarı
+                    n_results = 4 if intent == "compare" else 3
 
+                    # Veriyi Getir
+                    context = self.retriever.retrieve_context(search_keywords, n_results=n_results, filters=filters)
+
+                # Hâlâ veri yoksa
                 if not context:
                     print("⚠️ Veritabanında yeterli bilgi bulunamadı. Genel bilgiyle cevaplanacak.")
                     context = "No specific database records found matching the criteria."
