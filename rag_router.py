@@ -56,6 +56,17 @@ class QueryRouter:
         - 'Junior', '3rd year' -> academic_year: "3"
         - 'Senior', '4th year', 'Final year' -> academic_year: "4"
 
+        IMPORTANT RULES FOR FILTERS (UPDATED):
+        1. **LIST SUPPORT (OR LOGIC):**
+           - If user mentions multiple departments (e.g., "Software or Computer"), output a LIST: 
+             "target_department": ["Software Engineering", "Computer Engineering"]
+           - If user mentions multiple years (e.g., "2nd and 3rd year"), output a LIST:
+             "academic_year": ["2", "3"]
+           -If the question specifically uses terms like title, course, code, year, or topic, add them 
+              to the search_quaries section so that it searches among the required attributes
+        2. **SEARCH SCOPE (NEW):** - If user asks for course NAMES/TITLES (e.g. "Security courses") -> "search_scope": "title"
+           - If user asks for TOPICS/CONTENT (e.g. "courses covering Java") -> "search_scope": "content"
+           - If unsure -> "search_scope": "both"     
         OUTPUT JSON SCHEMA:
         {
           "intent": "count" | "search" | "compare" | "list_curriculum",
@@ -65,7 +76,8 @@ class QueryRouter:
           "specific_course_code": "String" | "None",  
           "academic_year": "1" | "2" | "3" | "4" | "None",
           "semester": "Fall" | "Spring" | "None",
-          "search_queries": ["keywords"]
+          "search_queries": ["keywords"],
+          "search_scope": "title" | "content" | "both"
         }
         """
 
@@ -92,5 +104,6 @@ class QueryRouter:
                 "intent": intent,
                 "target_department": "None",
                 "course_type": "None",
-                "search_queries": [user_query]
+                "search_queries": [user_query],
+                "search_scope": "both"
             }

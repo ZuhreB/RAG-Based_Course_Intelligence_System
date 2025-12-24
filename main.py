@@ -9,7 +9,7 @@ class CourseIntelligenceSystem:
     def __init__(self):
         print("\n🚀 AKILLI DERS SİSTEMİ BAŞLATILIYOR...")
 
-        print("1. [Router] Trafik Polisi (Llama 3.3) devreye alınıyor...")
+        print("1. [Router] Trafik Polisi (Llama 3.1) devreye alınıyor...")
         self.router = QueryRouter()
 
         print("2. [Retriever] Veritabanı Bağlantısı (ChromaDB) kontrol ediliyor...")
@@ -23,25 +23,28 @@ class CourseIntelligenceSystem:
     def _build_filters(self, route_result):
         """
         Router'dan gelen JSON verisini ChromaDB ve Python filtresine çevirir.
+        GÜNCELLEME: Listeleri (['SE', 'CS']) olduğu gibi geçirir, Retriever halleder.
         """
         filters = {}
 
-        # 1. Bölüm Filtresi
+        # Router JSON anahtarları ile Retriever'ın beklediği anahtarları eşleştiriyoruz.
+
+        # 1. Bölüm (target_department -> target_department)
         dept = route_result.get("target_department")
         if dept and dept not in ["None", None]:
-            filters["department"] = dept
+            filters["target_department"] = dept
 
-        # 2. Ders Tipi Filtresi
+        # 2. Ders Tipi (course_type -> course_type)
         c_type = route_result.get("course_type")
         if c_type and c_type not in ["None", None]:
-            filters["type"] = c_type
+            filters["course_type"] = c_type
 
-        # 3. Yıl Filtresi
+        # 3. Yıl (academic_year -> academic_year)
         year = route_result.get("academic_year")
         if year and year not in ["None", None]:
-            filters["year"] = year
+            filters["academic_year"] = year
 
-        # 4. Dönem Filtresi
+        # 4. Dönem (semester -> semester)
         semester = route_result.get("semester")
         if semester and semester not in ["None", None]:
             filters["semester"] = semester
@@ -61,19 +64,32 @@ class CourseIntelligenceSystem:
 
             # --- ADIM 1: ANALİZ (ROUTER) ---
             print("🔍 Analiz yapılıyor...", end="\r")
-            route_result = self.router.route_query(user_query)
+
+            # Router Hatası olursa sistem çökmesin diye try-except
+            try:
+                route_result = self.router.route_query(user_query)
+            except Exception as e:
+                print(f"\n❌ Router Hatası: {e}")
+                route_result = {"intent": "search", "search_queries": [user_query]}
 
             intent = route_result.get("intent")
             spec_code = route_result.get("specific_course_code")
             filters = self._build_filters(route_result)
-
-            # Router'dan gelen keywords listesini alıyoruz
             search_keywords_list = route_result.get("search_queries", [user_query])
+            search_scope = route_result.get("search_scope", "both")
 
-            # GÜVENLİK ÖNLEMİ: Eğer spesifik bir kod varsa ama keywords içinde yoksa, ekle.
-            # Böylece Exact Match bulamazsa bile Vektör araması o kodu da arar.
-            if spec_code and spec_code != "None" and spec_code not in str(search_keywords_list):
-                search_keywords_list.insert(0, spec_code)
+            # --- GÜVENLİK ÖNLEMİ (CRASH FIX: LISTE DESTEĞİ) ---
+            # Hata veren kısım düzeltildi: Liste gelirse döngüyle, String gelirse direk ekle.
+            if spec_code and spec_code != "None":
+                if isinstance(spec_code, list):
+                    # Eğer çoklu ders kodu geldiyse (örn: Compare IE 372 vs SE 216)
+                    for code in spec_code:
+                        if code not in search_keywords_list:
+                            search_keywords_list.insert(0, code)
+                else:
+                    # Tekil ders kodu
+                    if spec_code not in search_keywords_list:
+                        search_keywords_list.insert(0, spec_code)
 
             search_keywords = " ".join(search_keywords_list)
 
@@ -83,7 +99,8 @@ class CourseIntelligenceSystem:
 
             # SENARYO A: SAYMA / NİCEL SORULAR (COUNT)
             if intent == "count":
-                count = self.retriever.count_courses(filters=filters)
+                count = self.retriever.count_courses(filters=filters,search_keyword=search_keywords,
+                    search_scope=search_scope)
                 print(f"\n📊 ANALİTİK SONUÇ:")
                 print(f"Veritabanında kriterlerinize uyan tam **{count}** adet ders bulundu.")
 
@@ -91,18 +108,35 @@ class CourseIntelligenceSystem:
             else:
                 context = None
 
-                # --- STRATEJİ 1: KESİN EŞLEŞME (EXACT MATCH) ---
-                # Eğer Router bir ders kodu yakaladıysa (Örn: SE 115), önce bunu doğrudan çek.
+                # --- STRATEJİ 1: KESİN EŞLEŞME (EXACT MATCH - LISTE DESTEKLİ) ---
                 if spec_code and spec_code != "None":
-                    print(f"🔍 '{spec_code}' için veritabanına doğrudan bakılıyor...")
-                    context = self.retriever.retrieve_exact_match(spec_code)
+                    print(f"🔍 Kod bazlı kesin arama yapılıyor...")
+
+                    if isinstance(spec_code, list):
+                        # Liste geldiyse (örn: Compare X vs Y), hepsi için tek tek ara ve birleştir
+                        found_contexts = []
+                        for code in spec_code:
+                            res = self.retriever.retrieve_exact_match(code)
+                            if res:
+                                found_contexts.append(res)
+
+                        if found_contexts:
+                            context = "\n\n".join(found_contexts)
+                            print(f"   ✅ {len(found_contexts)} adet ders için kesin eşleşme bulundu.")
+
+                    else:
+                        # Tekil kod geldiyse
+                        context = self.retriever.retrieve_exact_match(spec_code)
 
                 # --- STRATEJİ 2: VEKTÖR ARAMASI (SEMANTIC SEARCH) ---
-                # SADECE eğer yukarıda kesin eşleşme BULUNAMADIYSA (context is None) buraya gir.
-                # Eski kodda burası "if"siz olduğu için yukarıdaki doğru cevabı eziyordu.
+                # Eğer kesin eşleşme YOKSA veya YETERSİZSE (karşılaştırma için) vektör araması da yap
                 if not context:
                     # n_results ayarı
                     n_results = 4 if intent == "compare" else 3
+
+                    # Eğer listede birden fazla ders varsa, limit artırılabilir
+                    if isinstance(spec_code, list) and len(spec_code) > 1:
+                        n_results = 6
 
                     # Veriyi Getir
                     context = self.retriever.retrieve_context(search_keywords, n_results=n_results, filters=filters)
@@ -118,7 +152,7 @@ class CourseIntelligenceSystem:
                 # Karşılaştırma ise Prompt'a ek talimat ekle
                 final_query = user_query
                 if intent == "compare":
-                    final_query += "\n(IMPORTANT: Please present the answer as a structured COMPARISON TABLE.)"
+                    final_query += "\n(IMPORTANT: Compare the courses side-by-side. Use a structured format.)"
 
                 response = self.generator.generate_answer(final_query, context)
 
